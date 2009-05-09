@@ -2,7 +2,8 @@ USING: accessors arrays cocoa.dialogs closures darcs-ui.commands
 file-trees io.directories kernel math models monads
 models.mapped sequences splitting ui ui.frp ui.gadgets.buttons
 ui.gadgets.comboboxes ui.gadgets.labels ui.gadgets.scrollers
-unicode.case xml xml.data xml.traversal ;
+ui.baseline-alignment unicode.case xml xml.data xml.traversal
+namespaces ;
 IN: darcs-ui
 
 : extract ( tag name -- string ) tag-named children>string ;
@@ -34,7 +35,7 @@ IN: darcs-ui
             "TO-TAG:" "TO-MATCH:" "TO-PATCH:"
          } <combobox> -> [ but-last >lower ] fmap
          <frp-field> { 100 10 } >>pref-dim ->% 1
-      ] <hbox> ,
+      ] <hbox> +baseline+ >>align ,
       [
          C[ patches prepare-patches ] <2mapped> <patch-viewer> ->% .5
          files "\n" split create-tree <model> <dir-table> <scroller> ->% .5
