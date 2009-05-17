@@ -1,30 +1,31 @@
 USING: accessors arrays cocoa.dialogs closures darcs-ui.commands
-file-trees io.directories kernel math models monads
+file-trees io io.directories kernel math models monads
 models.mapped sequences splitting ui ui.frp ui.gadgets.buttons
 ui.gadgets.comboboxes ui.gadgets.labels ui.gadgets.scrollers
-ui.baseline-alignment unicode.case xml xml.data xml.traversal
-namespaces ;
+ui.baseline-alignment unicode.case ;
 IN: darcs-ui
-
-: extract ( tag name -- string ) tag-named children>string ;
-: prepare-patches ( changelog -- table-columns )
-   string>xml "patch" tags-named
-      [  [ "name" extract ]
-         [ [ "author" attr ] [ "local_date" attr ] bi ]
-         bi 3array
-      ] map { "working" "" "" } prefix ;
 
 : <patch-viewer> ( columns -- scroller ) <frp-table>
    [ first ] >>val-quot
    { "Patch" "Author" "Date" } >>column-titles
    <scroller> ;
 
+: <change-list> ( {str} -- gadget ) <frp-list> t >>multiple-selection? indexed <scroller> ;
+
+: answer ( length indices -- ) [ index [ "y\n" ] [ "n\n" ] if write flush ] curry each ;
+: <patch-button> ( str quot -- button ) \ drop [
+      whatsnew [ length <model> ] keep <model>
+      [
+         <change-list> ->% 1 "okay" <frp-button> -> <updates> [ answer ] <2mapped> ,
+      ] <vbox> { 229 200 } >>pref-dim "select changes" open-window
+   ] rot 2curry <border-button> ;
+
 : toolbar ( -- )
-    "push" [ push ] <border-button> ,
-    "pull" [ pull ] <border-button> ,
-    "send" [ send ] <border-button> ,
-    "apply" [ open-dir-panel first apply ] <border-button> ,
-    "record" [ record ] <border-button> , ;
+   "record" C[ <model> "Patch Name:" ask [ record ] <2mapped> ] <patch-button> ,
+   "push" C[ push ] <patch-button> ,
+   "pull" C[ pull ] <patch-button> ,
+   "send" C[ send ] <patch-button> ,
+   "apply" C[ open-dir-panel first apply ] <patch-button> , ;
 
 : darcs-window ( -- ) [
       [
@@ -37,12 +38,12 @@ IN: darcs-ui
          <frp-field> { 100 10 } >>pref-dim ->% 1
       ] <hbox> +baseline+ >>align ,
       [
-         C[ patches prepare-patches ] <2mapped> <patch-viewer> ->% .5
+         C[ patches ] <2mapped> <patch-viewer> ->% .5
          files "\n" split create-tree <model> <dir-table> <scroller> ->% .5
            [ file? ] <filter> [ comment>> ] fmap swap
       ] <hbox> ,% .5
-     C[ 2dup and [ contents ] [ 2drop "Select a patch and file to see its historical contents" ] if ]
-         <2mapped> <label-control> <scroller> ,% .5
+      C[ cnts ] <2mapped> "Select a patch and file to see its historical contents" <model>
+         swap <switch> <label-control> <scroller> ,% .5
    ] <vbox> "darcs" open-window ;
 
 : open-file ( -- ) [ open-dir-panel first [ darcs-window ] with-directory ] with-ui ;
