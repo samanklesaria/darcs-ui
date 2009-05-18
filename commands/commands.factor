@@ -1,5 +1,5 @@
-USING: arrays closures darcs-ui io.encodings.utf8 io.launcher kernel make regexp sequences str-fry
-xml xml.data xml.traversal ;
+USING: arrays closures darcs-ui io.encodings.utf8 io.launcher
+kernel make regexp sequences str-fry xml xml.data xml.traversal ;
 IN: darcs-ui.commands
 
 : extract ( tag name -- string ) tag-named children>string ;
@@ -17,7 +17,7 @@ IN: darcs-ui.commands
 
 : whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ .+(\n[-+]    .*)*/ all-matching-subseqs ;
 
-: with-patches ( quot str -- ) utf8 rot with-process-stream ; inline
+: with-patches ( quot desc -- ) utf8 rot with-process-writer ; inline
 
 : pull ( quot -- ) "darcs pull" with-patches ; inline
 : push ( quot -- ) "darcs push" with-patches ; inline
