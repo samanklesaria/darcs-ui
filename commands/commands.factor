@@ -11,7 +11,7 @@ IN: darcs-ui.commands
          bi 3array
       ] map { "working" "" "" } prefix ;
 
-: patches ( method search -- table-columns )
+: patches ( _ method search -- table-columns ) rot drop
    [ drop "" ] [ I" --_ \"_\"" ] if-empty
    I" darcs changes --xml-output _" run-desc prepare-patches ;
 
