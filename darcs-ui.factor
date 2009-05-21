@@ -1,8 +1,8 @@
 USING: accessors arrays cocoa.dialogs closures continuations
-darcs-ui.commands file-trees fry io io.directories kernel
-math models monads sequences splitting ui ui.gadgets.alerts
-ui.frp ui.gadgets.buttons ui.gadgets.comboboxes
-ui.gadgets.labels ui.gadgets.scrollers ui.baseline-alignment
+darcs-ui.commands file-trees io io.directories kernel math
+models monads sequences splitting ui ui.gadgets.alerts
+ui.frp ui.gadgets.comboboxes ui.gadgets.labels
+ui.gadgets.scrollers ui.baseline-alignment
 unicode.case ;
 IN: darcs-ui
 
@@ -15,22 +15,21 @@ IN: darcs-ui
 
 : answer ( length indices -- ) [ index [ "y" ] [ "n" ] if write ] curry each flush ;
 
-: <patch-button> ( str quot -- button ) '[ drop
-      [ whatsnew [ length <model> ] keep <model>
-         [ <change-list> ->% 1 "okay" <frp-button> [ close-window ] >>hook
-            -> <updates> [ [ answer ] 2curry @ ] <$2 ,
-         ] <vbox> { 229 200 } >>pref-dim "select changes" open-window
-      ] [ drop [ ] "No changes!" alert ] recover
-   ] <border-button> ;
+: patches-quot ( -- model-of-quot )
+   [ whatsnew [ length <model> ] keep <model>
+      [ <change-list> ->% 1 "okay" <frp-button> [ close-window ] >>hook
+         -> <updates> [ [ answer ] 2curry ] liftA2
+      ] <vbox> { 229 200 } >>pref-dim "select changes" open-window
+   ] [ drop [ ] "No changes!" alert f <model> ] recover ;
 
+: <patch-button> ( str -- model ) <frp-button> -> [ drop patches-quot ] bind ;
+   
 : toolbar ( -- merged )
-   "record" f <model> [
-      C[ [ <model> ] dip "Patch Name:" ask-user* [ record ] <$2 activate-model ] curry <patch-button> ,
-   ] keep
-   "push" C[ push ] <patch-button> ,
-   "pull" C[ pull ] <patch-button> ,
-   "send" C[ send ] <patch-button> ,
-   "apply" C[ open-dir-panel first apply ] <patch-button> , t <model> swap <switch> ;
+   "record" <patch-button> dup [ drop "Patch Name:" ask-user ] bind C[ record ] $>2
+   "push" <patch-button> C[ push ] $> ,
+   "pull" <patch-button> C[ pull ] $>
+   "send" <patch-button> C[ send ] $> ,
+   "apply" <patch-button> C[ open-dir-panel first apply ] $> 3array <merge> t <model> swap <switch> ;
 
 : darcs-window ( -- ) [
       [
