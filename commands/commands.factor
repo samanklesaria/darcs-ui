@@ -1,5 +1,5 @@
 USING: arrays closures darcs-ui io.encodings.utf8 io.launcher
-kernel make regexp sequences str-fry xml xml.data xml.traversal ;
+kernel regexp sequences fries xml xml.data xml.traversal ;
 IN: darcs-ui.commands
 
 : extract ( tag name -- string ) tag-named children>string ;
@@ -9,23 +9,24 @@ IN: darcs-ui.commands
       [  [ "name" extract ]
          [ [ "author" attr ] [ "local_date" attr ] bi ]
          bi 3array
-      ] map { "working" "" "" } prefix ;
+      ] map ;
 
 : patches ( _ method search -- table-columns ) rot drop
-   [ drop "" ] [ I" --_ \"_\"" ] if-empty
-   I" darcs changes --xml-output _" run-desc prepare-patches ;
+   [ drop "" ] [ i" --_ \"_\"" ] if-empty
+   i" darcs changes --xml-output _" run-desc prepare-patches ;
 
-: whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ .+(\n[-+]    .*)*/ all-matching-subseqs ;
+! this fails
+: whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ ^[^+-].*/m all-matching-subseqs ;
 
 : with-patches ( quot desc -- ) utf8 rot with-process-writer ; inline
 
 : pull ( quot -- ) "darcs pull" with-patches ; inline
 : push ( quot -- ) "darcs push" with-patches ; inline
 : send ( quot -- ) "darcs send" with-patches ; inline
-: apply ( quot file -- ) I" darcs apply _" with-patches ; inline
-: record ( quot name -- ) { "darcs" "record" "--skip-long-comment" "-m" }
-   swap suffix with-patches ; inline
+: apply ( quot file -- ) i" darcs apply _" with-patches ; inline
+: record ( quot name author -- ) i{ "darcs" "record" "--skip-long-comment" "-m" _ "--author" _ }
+   with-patches ; inline
 
-: cnts ( file patch -- result ) [ "darcs" , "show" , "contents" , "--match" , I" exact \"_\"" , , ] { } make run-desc ;
+: cnts ( file patch -- result ) i" exact \"_\"" swap i{ "darcs" "show" "contents" "--match" _ _ } run-desc ;
 
 : files ( -- str ) "darcs show files" run-desc ;

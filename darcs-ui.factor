@@ -1,7 +1,8 @@
 USING: accessors arrays cocoa.dialogs closures continuations
-darcs-ui.commands file-trees io io.directories kernel math
-models monads sequences splitting ui ui.gadgets.alerts
-ui.frp ui.gadgets.comboboxes ui.gadgets.labels
+darcs-ui.commands fry file-trees io io.files io.directories
+io.encodings.utf8 kernel math models monads sequences
+splitting ui ui.gadgets.alerts ui.frp
+ui.gadgets.comboboxes ui.gadgets.labels
 ui.gadgets.scrollers ui.baseline-alignment
 unicode.case ;
 IN: darcs-ui
@@ -23,9 +24,13 @@ IN: darcs-ui
    ] [ drop [ ] "No changes!" alert f <model> ] recover ;
 
 : <patch-button> ( str -- model ) <frp-button> -> [ drop patches-quot ] bind ;
-   
+
+: author ( -- model ) "_darcs/prefs/author" dup exists?
+   [ utf8 file-contents <model> ]
+   [ '[ dup _ utf8 set-file-contents ] "Your Name:" ask-user swap fmap ] if ;
+
 : toolbar ( -- merged )
-   "record" <patch-button> dup [ drop "Patch Name:" ask-user ] bind C[ record ] $>2
+   "record" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup C[ drop author ] bind C[ record ] $>3
    "push" <patch-button> C[ push ] $> ,
    "pull" <patch-button> C[ pull ] $>
    "send" <patch-button> C[ send ] $> ,
@@ -52,4 +57,5 @@ IN: darcs-ui
 
 : open-file ( -- ) [ open-dir-panel first [ darcs-window ] with-directory ] with-ui ;
 
+! default repo, author, etc
 MAIN: open-file
