@@ -1,5 +1,5 @@
-USING: arrays closures darcs-ui io.encodings.utf8 io.launcher
-kernel regexp sequences fries xml xml.data xml.traversal ;
+USING: arrays closures continuations darcs-ui io.encodings.utf8
+io.launcher kernel regexp sequences fries xml xml.data xml.traversal ;
 IN: darcs-ui.commands
 
 : extract ( tag name -- string ) tag-named children>string ;
@@ -27,6 +27,7 @@ IN: darcs-ui.commands
 : record ( quot name author -- ) i{ "darcs" "record" "--skip-long-comment" "-m" _ "--author" _ }
    with-patches ; inline
 
-: cnts ( file patch -- result ) i" exact \"_\"" swap i{ "darcs" "show" "contents" "--match" _ _ } run-desc ;
+: cnts ( file patch -- result ) i" exact \"_\"" swap i{ "darcs" "show" "contents" "--match" _ _ }
+   [ run-desc ] [ 2drop "File doesn't exist for selected patch" ] recover ;
 
 : files ( -- str ) "darcs show files" run-desc ;
