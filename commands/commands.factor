@@ -15,7 +15,6 @@ IN: darcs-ui.commands
    [ drop "" ] [ i" --_ \"_\"" ] if-empty
    i" darcs changes --xml-output _" run-desc prepare-patches ;
 
-! this fails
 : whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ ^[^+-].*/m all-matching-subseqs ;
 
 : with-patches ( quot desc -- ) utf8 rot with-process-writer ; inline
@@ -29,5 +28,7 @@ IN: darcs-ui.commands
 
 : cnts ( file patch -- result ) i" exact \"_\"" swap i{ "darcs" "show" "contents" "--match" _ _ }
    [ run-desc ] [ 2drop "File doesn't exist for selected patch" ] recover ;
+
+: init-repo ( -- ) "darcs init" run-desc drop ;
 
 : files ( -- str ) "darcs show files" run-desc ;

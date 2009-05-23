@@ -1,9 +1,8 @@
 USING: accessors arrays cocoa.dialogs closures continuations
 darcs-ui.commands fry file-trees io io.files io.directories
 io.encodings.utf8 kernel math models monads sequences
-splitting ui ui.gadgets.alerts ui.frp
-ui.gadgets.comboboxes ui.gadgets.labels
-ui.gadgets.scrollers ui.baseline-alignment
+splitting ui ui.gadgets.alerts ui.frp ui.gadgets.comboboxes
+ui.gadgets.labels ui.gadgets.scrollers ui.baseline-alignment
 unicode.case ;
 IN: darcs-ui
 
@@ -55,7 +54,10 @@ IN: darcs-ui
          swap <switch> <label-control> <scroller> ,% .5
    ] <vbox> "darcs" open-window ;
 
-: open-file ( -- ) [ open-dir-panel first [ darcs-window ] with-directory ] with-ui ;
+DEFER: open-file
+: create-repo ( -- ) "The selected folder is not a darcs repo.  Would you like to create one?" { "yes" "no" } ask-buttons
+   [ [ drop init-repo darcs-window ] $> activate-model ] [ [ drop open-file ] $> activate-model ] bi* ;
 
-! default repo, author, etc
+: open-file ( -- ) [ open-dir-panel first [ "_darcs" exists? [ darcs-window ] [ create-repo ] if ] with-directory ] with-ui ;
+
 MAIN: open-file
