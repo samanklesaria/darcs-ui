@@ -24,12 +24,13 @@ IN: darcs-ui
 
 : <patch-button> ( str -- model ) <frp-button> -> [ drop patches-quot ] bind ;
 
-: author ( -- model ) "_darcs/prefs/author" dup exists?
-   [ utf8 file-contents <model> ]
-   [ '[ dup _ utf8 set-file-contents ] "Your Name:" ask-user swap fmap ] if ;
+: load-pref ( name file -- model ) "_darcs/prefs/" prepend dup exists?
+   [ utf8 file-contents <model> nip ]
+   [ '[ dup _ utf8 set-file-contents ] swap ask-user swap fmap ] if ;
 
 : toolbar ( -- merged )
-   "record" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup C[ drop author ] bind C[ record ] $>3
+   "record" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup
+      C[ drop "Your Name:" "author" load-pref ] bind C[ record ] $>3
    "push" <patch-button> C[ push ] $> ,
    "pull" <patch-button> C[ pull ] $>
    "send" <patch-button> C[ send ] $> ,
@@ -58,6 +59,8 @@ DEFER: open-file
 : create-repo ( -- ) "The selected folder is not a darcs repo.  Would you like to create one?" { "yes" "no" } ask-buttons
    [ [ drop init-repo darcs-window ] $> activate-model ] [ [ drop open-file ] $> activate-model ] bi* ;
 
-: open-file ( -- ) [ open-dir-panel first [ "_darcs" exists? [ darcs-window ] [ create-repo ] if ] with-directory ] with-ui ;
+: open-file ( -- ) [ open-dir-panel
+      [ first [ "_darcs" exists? [ darcs-window ] [ create-repo ] if ] with-directory ] unless-empty
+   ] with-ui ;
 
 MAIN: open-file
