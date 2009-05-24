@@ -25,19 +25,19 @@ IN: darcs-ui
 : <patch-button> ( str -- model ) <darcs-button> -> [ drop patches-quot ] bind ;
 
 : load-pref ( name file -- model ) "_darcs/prefs/" prepend dup exists?
-   [ utf8 file-contents <model> nip ]
+   [ utf8 [ readln ] with-file-reader <model> nip ]
    [ '[ dup _ utf8 set-file-contents ] swap ask-user swap fmap ] if ;
 
 : toolbar ( -- file-updates patch-updates )
    "add" <darcs-button> -> [ drop open-dir-panel [ add-repo-file ] when* ] $>
-   "rem" <darcs-button> -> [ drop open-dir-panel [ remove-repo-file ] when* ] $>
+   "rem" <darcs-button> -> [ drop open-panel [ remove-repo-file ] when* ] $>
       2array <merge> >behavior
    "rec" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup
       C[ drop "Your Name:" "author" load-pref ] bind C[ record ] 3$>-&
-   "push" <patch-button> dup [ "Push To:" "defaultrepo" load-pref ] bind* C[ push ] 2$>-& ,
-   "pull" <patch-button> dup [ "Pull From:" "defaultrepo" load-pref ] bind* C[ pull ] 2$>-&
-   "send" <patch-button> dup [ "Send To:" "defaultrepo" load-pref ] bind* C[ send ] 2$>-& ,
-   "app" <patch-button> C[ open-dir-panel first apply ] $> 3array <merge> >behavior ;
+   "push" <darcs-button> -> [ "Push To:" "defaultrepo" load-pref ] bind* C[ repo-push ] $> ,
+   "pull" <darcs-button> -> [ "Pull From:" "defaultrepo" load-pref ] bind* C[ pull ] $>
+   "send" <darcs-button> -> [ "Send To:" "defaultrepo" load-pref ] bind* C[ send ] $> ,
+   "app" <darcs-button> -> C[ open-dir-panel [ first apply ] when* ] $> 3array <merge> >behavior ;
 
 : darcs-window ( -- ) [
       [
@@ -61,7 +61,8 @@ IN: darcs-ui
 
 DEFER: open-file
 : create-repo ( -- ) "The selected folder is not a darcs repo.  Would you like to create one?" { "yes" "no" } ask-buttons
-   [ [ drop init-repo darcs-window ] $> activate-model ] [ [ drop open-file ] $> activate-model ] bi* ;
+   [ C[ drop [ init-repo darcs-window ] [ drop "Can't write to folder" alert* ] recover ] $> activate-model ]
+   [ [ drop open-file ] $> activate-model ] bi* ;
 
 : open-file ( -- ) [ open-dir-panel
       [ first [ "_darcs" exists? [ darcs-window ] [ create-repo ] if ] with-directory ] unless-empty
