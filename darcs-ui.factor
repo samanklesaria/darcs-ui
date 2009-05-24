@@ -1,9 +1,9 @@
 USING: accessors arrays cocoa.dialogs closures continuations
-darcs-ui.commands fry file-trees io io.files io.directories
+darcs-ui.commands fries fry file-trees io io.files io.directories
 io.encodings.utf8 kernel math models monads sequences
 splitting ui ui.gadgets.alerts ui.frp ui.gadgets.comboboxes
 ui.gadgets.labels ui.gadgets.scrollers ui.baseline-alignment
-unicode.case ;
+ui.images unicode.case ;
 IN: darcs-ui
 : <patch-viewer> ( columns -- scroller ) <frp-table>
    [ first ] >>val-quot
@@ -21,22 +21,23 @@ IN: darcs-ui
       ] <vbox> { 229 200 } >>pref-dim "select changes" open-window
    ] [ drop [ ] "No changes!" alert f <model> ] recover ;
 
-: <patch-button> ( str -- model ) <frp-button> -> [ drop patches-quot ] bind ;
+: <darcs-button> ( str -- button ) i" vocab:darcs-ui/icons/_.tiff" <image-name> <frp-button> ;
+: <patch-button> ( str -- model ) <darcs-button> -> [ drop patches-quot ] bind ;
 
 : load-pref ( name file -- model ) "_darcs/prefs/" prepend dup exists?
    [ utf8 file-contents <model> nip ]
    [ '[ dup _ utf8 set-file-contents ] swap ask-user swap fmap ] if ;
 
-! Must update after all have refreshed, not after one has refreshed
-! Make all, any
-: toolbar ( -- merged )
-   "add" <frp-button> -> [ drop open-dir-panel add ] $>
-   "record" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup
+: toolbar ( -- file-updates patch-updates )
+   "add" <darcs-button> -> [ drop open-dir-panel [ add-repo-file ] when* ] $>
+   "rem" <darcs-button> -> [ drop open-dir-panel [ remove-repo-file ] when* ] $>
+      2array <merge> >behavior
+   "rec" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup
       C[ drop "Your Name:" "author" load-pref ] bind C[ record ] 3$>-&
    "push" <patch-button> dup [ "Push To:" "defaultrepo" load-pref ] bind* C[ push ] 2$>-& ,
    "pull" <patch-button> dup [ "Pull From:" "defaultrepo" load-pref ] bind* C[ pull ] 2$>-&
    "send" <patch-button> dup [ "Send To:" "defaultrepo" load-pref ] bind* C[ send ] 2$>-& ,
-   "apply" <patch-button> C[ open-dir-panel first apply ] $> 4array <merge> t <model> swap <switch> ;
+   "app" <patch-button> C[ open-dir-panel first apply ] $> 3array <merge> >behavior ;
 
 : darcs-window ( -- ) [
       [
@@ -49,9 +50,10 @@ IN: darcs-ui
          <frp-field> { 100 10 } >>pref-dim ->% 1
       ] <hbox> +baseline+ >>align ,
       [
-         C[ patches ] 3fmap-| <patch-viewer> ->% .5
-         files "\n" split create-tree <model> <dir-table> <scroller> ->% .5
-           [ file? ] <filter> [ comment>> ] fmap swap
+         C[ rot drop patches ] 3fmap-| <patch-viewer> ->% .5
+         [ C[ drop files "\n" split create-tree ] fmap <dir-table> <scroller> ->% .5
+           [ file? ] <filter> [ comment>> ] fmap
+         ] dip
       ] <hbox> ,% .5
       C[ cnts ] 2fmap-| "Select a patch and file to see its historical contents" <model>
          swap <switch> <label-control> <scroller> ,% .5

@@ -10,7 +10,7 @@ IN: darcs-ui.commands
          [ [ "author" attr ] [ "local_date" attr ] bi ]
          bi 3array
       ] map ;
-: patches ( _ method search -- table-columns ) rot drop
+: patches ( method search -- table-columns )
    [ drop "" ] [ i" --_ \"_\"" ] if-empty
    i" darcs changes --xml-output _" run-desc prepare-patches ;
 
@@ -28,6 +28,8 @@ IN: darcs-ui.commands
    [ run-desc ] [ 2drop "File doesn't exist for selected patch" ] recover ;
 : files ( -- str ) "darcs show files" run-desc ;
 
-: init-repo ( -- ) "darcs init" run-desc drop ;
-: add ( files -- ) { "darcs" "add" "-r" } prepend
-   [ run-desc drop ] [ 2drop [ ] "File already exists in repository" alert ] recover ;
+: init-repo ( -- ) "darcs init" try-process ;
+: add-repo-file ( files -- ) { "darcs" "add" "-r" } prepend
+   [ try-process ] [ 2drop [ ] "File already exists in repository" alert ] recover ;
+: remove-repo-file ( files -- ) { "darcs" "remove" } prepend
+   [ try-process ] [ 2drop [ ] "File doesn't exist in repository" alert ] recover ;
