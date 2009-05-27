@@ -1,9 +1,11 @@
 USING: accessors arrays cocoa.dialogs closures continuations
-darcs-ui.commands fries fry file-trees io io.files io.directories
+darcs-ui.commands fry file-trees io io.files io.directories
 io.encodings.utf8 kernel math models monads sequences
-splitting ui ui.gadgets.alerts ui.frp ui.gadgets.comboboxes
+splitting ui ui.gadgets.alerts ui.frp.gadgets ui.frp.layout
+ui.frp.signals ui.frp.instances ui.gadgets.comboboxes
 ui.gadgets.labels ui.gadgets.scrollers ui.baseline-alignment
 ui.images unicode.case ;
+EXCLUDE: fries => _ ;
 IN: darcs-ui
 : <patch-viewer> ( columns -- scroller ) <frp-table>
    [ first ] >>val-quot
@@ -37,7 +39,7 @@ IN: darcs-ui
    "push" <darcs-button> -> [ "Push To:" "defaultrepo" load-pref ] bind* C[ repo-push ] $> ,
    "pull" <darcs-button> -> [ "Pull From:" "defaultrepo" load-pref ] bind* C[ pull ] $>
    "send" <darcs-button> -> [ "Send To:" "defaultrepo" load-pref ] bind* C[ send ] $> ,
-   "app" <darcs-button> -> C[ open-dir-panel [ first apply ] when* ] $> 3array <merge> >behavior ;
+   "app" <darcs-button> -> C[ open-dir-panel [ first app ] when* ] $> 3array <merge> >behavior ;
 
 : darcs-window ( -- ) [
       [
