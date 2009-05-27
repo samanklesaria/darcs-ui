@@ -25,8 +25,13 @@ IN: darcs-ui.commands
 
 : cnts ( file patch -- result ) dup "working" = [ drop utf8 file-contents ]
    [ i" exact \"_\"" swap i{ "darcs" "show" "contents" "--match" _ _ }
-      [ run-desc ] [ 2drop "File doesn't exist for selected patch" ] recover ] if ;
+      [ run-desc ] [ 2drop "FILE DOESN'T EXIST FOR SELECTED PATCH" ] recover ] if ;
 : files ( -- str ) "darcs show files" [ run-desc ] [ drop "Error showing files" alert* ] recover ;
+
+: diff ( file patch1 patch2 -- result ) over "working" =
+   [ nip i{ "darcs" "diff" "-p" _ } ]
+   [ i{ "darcs" "diff" "--from-patch" _ "--to-patch" _ } ] if
+   swap dup t = [ drop ] [ suffix ] if [ run-desc ] [ 2drop "DIFF FAILED" ] recover ;
 
 : init-repo ( -- ) "darcs init" try-process ;
 : add-repo-file ( files -- ) { "darcs" "add" "-r" } prepend
