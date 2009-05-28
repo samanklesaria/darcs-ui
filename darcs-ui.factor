@@ -35,11 +35,11 @@ IN: darcs-ui
    "rem" <darcs-button> -> [ drop open-panel [ remove-repo-file ] when* ] $>
       2array <merge> >behavior
    "rec" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup
-      C[ drop "Your Name:" "author" load-pref ] bind C[ record ] 3$>-&
-   "push" <darcs-button> -> [ "Push To:" "defaultrepo" load-pref ] bind* C[ repo-push ] $> ,
-   "pull" <darcs-button> -> [ "Pull From:" "defaultrepo" load-pref ] bind* C[ pull ] $>
-   "send" <darcs-button> -> [ "Send To:" "defaultrepo" load-pref ] bind* C[ send ] $> ,
-   "app" <darcs-button> -> C[ open-dir-panel [ first app ] when* ] $> 3array <merge> >behavior ;
+      DIR[ drop "Your Name:" "author" load-pref ] bind DIR[ record ] 3$>-&
+   "push" <darcs-button> -> [ "Push To:" "defaultrepo" load-pref ] bind* DIR[ repo-push ] $> ,
+   "pull" <darcs-button> -> [ "Pull From:" "defaultrepo" load-pref ] bind* DIR[ pull ] $>
+   "send" <darcs-button> -> [ "Send To:" "defaultrepo" load-pref ] bind* DIR[ send ] $> ,
+   "app" <darcs-button> -> DIR[ open-dir-panel [ first app ] when* ] $> 3array <merge> >behavior ;
 
 : darcs-window ( -- ) [
       [
@@ -52,20 +52,20 @@ IN: darcs-ui
          <frp-field> { 100 10 } >>pref-dim ->% 1
       ] <hbox> +baseline+ >>align ,
       [
-         C[ rot drop patches ] 3fmap-| <patch-viewer> ->% .5 [ [ f ] when-empty ] fmap
-         [ C[ drop files "\n" split create-tree ] fmap <dir-table> <scroller> ->% .5
+         DIR[ rot drop patches ] 3fmap-| <patch-viewer> ->% .5 [ [ f ] when-empty ] fmap
+         [ DIR[ drop files "\n" split create-tree ] fmap <dir-table> <scroller> ->% .5
            [ file? ] <filter> [ comment>> ] fmap
          ] dip
       ] <hbox> ,% .5 [
-         [ length 1 = ] <filter> C[ first cnts ] 2fmap-|
+         [ length 1 = ] <filter> DIR[ first cnts ] 2fmap-|
          "Select a patch and file to see its historical contents" <model> swap <switch>
-      ] [ [ length 2 = ] <filter> [ t <model> swap <switch> ] dip C[ first2 swap diff ] 2fmap-| ] 2bi
+      ] [ [ length 2 = ] <filter> [ t <model> swap <switch> ] dip DIR[ first2 swap diff ] 2fmap-| ] 2bi
       2array <merge> <label-control> <scroller> ,% .5
    ] <vbox> "darcs" open-window ;
 
 DEFER: open-file
 : create-repo ( -- ) "The selected folder is not a darcs repo.  Would you like to create one?" { "yes" "no" } ask-buttons
-   [ C[ drop [ init-repo darcs-window ] [ drop "Can't write to folder" alert* ] recover ] $> activate-model ]
+   [ DIR[ drop [ init-repo darcs-window ] [ drop "Can't write to folder" alert* ] recover ] $> activate-model ]
    [ [ drop open-file ] $> activate-model ] bi* ;
 
 : open-file ( -- ) [ open-dir-panel
