@@ -1,10 +1,10 @@
 USING: accessors arrays cocoa.dialogs closures continuations
-darcs-ui.commands fry file-trees io io.files io.directories
-io.encodings.utf8 kernel math models monads sequences
-splitting ui ui.gadgets.alerts ui.frp.gadgets ui.frp.layout
-ui.frp.signals ui.frp.instances ui.gadgets.comboboxes
-ui.gadgets.labels ui.gadgets.scrollers ui.baseline-alignment
-ui.images unicode.case ;
+darcs-ui.commands fry file-trees io io.files io.pathnames
+io.directories io.encodings.utf8 kernel math models monads
+sequences splitting ui ui.gadgets.alerts ui.frp.gadgets
+ui.frp.layout ui.frp.signals ui.frp.instances
+ui.gadgets.comboboxes ui.gadgets.labels ui.gadgets.scrollers
+ui.baseline-alignment ui.images unicode.case ;
 EXCLUDE: fries => _ ;
 IN: darcs-ui
 : <patch-viewer> ( columns -- scroller ) <frp-table>
@@ -64,9 +64,10 @@ IN: darcs-ui
    ] <vbox> "darcs" open-window ;
 
 DEFER: open-file
-: create-repo ( -- ) "The selected folder is not a darcs repo.  Would you like to create one?" { "yes" "no" } ask-buttons
+: create-repo ( -- ) "The selected folder is not a darcs repo.  Would you like to create one?" { "get remote" "init local" "find another repo" } ask-buttons
+   [ [ drop "Patch Name:" ask-user ] bind DIR[ dup repo-get file-name [ darcs-window ] with-directory ] $> activate-model ]
    [ DIR[ drop [ init-repo darcs-window ] [ drop "Can't write to folder" alert* ] recover ] $> activate-model ]
-   [ [ drop open-file ] $> activate-model ] bi* ;
+   [ [ drop open-file ] $> activate-model ] tri* ;
 
 : open-file ( -- ) [ open-dir-panel
       [ first [ "_darcs" exists? [ darcs-window ] [ create-repo ] if ] with-directory ] unless-empty

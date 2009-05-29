@@ -1,4 +1,4 @@
-USING: arrays closures continuations darcs-ui io.encodings.utf8
+USING: accessors arrays closures continuations darcs-ui io.encodings.utf8
 io.launcher io.files kernel regexp sequences fries xml xml.data
 xml.traversal ui.gadgets.alerts ;
 IN: darcs-ui.commands
@@ -16,7 +16,8 @@ IN: darcs-ui.commands
 
 : whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ ^[^+-].*/m all-matching-subseqs ;
 
-: pull ( repo -- ) i" darcs pull -a _" [ try-process ] [ 2drop "Can't connect" alert* ] recover ; inline
+: pull ( repo -- ) i" darcs pull --mark-conflicts -a _" [ try-process ]
+   [ nip code>> 1 = [ "Conflicts marked- fix them and re-record" alert* ] [ "Can't connect" alert* ] if ] recover ; inline
 : repo-push ( repo -- ) i{ "darcs" "push" "-a" _ } [ try-process ] [ 2drop "Push refused" alert* ] recover ; inline
 : send ( repo -- ) i{ "darcs" "send" "-a" _ } [ try-process ] [ 2drop "Sending failed" alert* ] recover ; inline
 : app ( file -- ) i{ "darcs" "apply" "-a" _ } [ try-process ] [ 2drop "Applying failed" alert* ] recover ; inline
@@ -38,3 +39,4 @@ IN: darcs-ui.commands
    [ try-process ] [ 2drop "File already exists in repository" alert* ] recover ;
 : remove-repo-file ( files -- ) { "darcs" "remove" } prepend
    [ try-process ] [ 2drop "File doesn't exist in repository" alert* ] recover ;
+: repo-get ( filename -- ) i" darcs get _" [ try-process ] [ 2drop "Error connecting" alert* ] recover ;
