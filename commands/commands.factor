@@ -10,9 +10,10 @@ IN: darcs-ui.commands
          [ [ "author" attr ] [ "local_date" attr ] bi ]
          bi 3array
       ] map ;
+: (patches) ( str -- table-columns )  i" darcs changes --xml-output _"
+   [ run-desc prepare-patches ] [ 2drop "Error showing patches" alert* f ] recover ;
 : patches ( method search -- table-columns )
-   [ drop { "working" "" "" } "" ] [ { } i" --_ \"_\"" ] if-empty
-   i" darcs changes --xml-output _" run-desc prepare-patches swap prefix ;
+   [ drop "" (patches) { "working" "" "" } prefix ] [ i" --_ \"_\"" (patches) ] if-empty ;
 
 : whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ ^[^+-].*/m all-matching-subseqs ;
 

@@ -24,7 +24,7 @@ IN: darcs-ui
    ] [ drop [ ] "No changes!" alert f <model> ] recover ;
 
 : <darcs-button> ( str -- button ) i" vocab:darcs-ui/icons/_.tiff" <image-name> <frp-button> ;
-: <patch-button> ( str -- model ) <darcs-button> -> [ drop patches-quot ] bind ;
+: <patch-button> ( str -- model ) <darcs-button> -> [ patches-quot ] bind* ;
 
 : load-pref ( name file -- model ) "_darcs/prefs/" prepend dup exists?
    [ utf8 [ readln ] with-file-reader <model> nip ]
