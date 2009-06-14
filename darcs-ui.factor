@@ -1,11 +1,11 @@
 USING: accessors arrays cocoa.dialogs closures continuations
-darcs-ui.commands fry file-trees io io.files io.pathnames
+darcs-ui.commands fries fry file-trees io io.files io.pathnames
 io.directories io.encodings.utf8 kernel math models monads
 sequences splitting ui ui.gadgets.alerts ui.frp.gadgets
-ui.frp.layout ui.frp.signals ui.frp.instances
-ui.gadgets.comboboxes ui.gadgets.labels ui.gadgets.scrollers
-ui.baseline-alignment ui.images unicode.case ;
-EXCLUDE: fries => _ ;
+ui.frp.layout ui.frp.signals ui.gadgets.comboboxes
+ui.gadgets.labels ui.gadgets.scrollers
+ui.baseline-alignment ui.images unicode.case
+ui.pens.solid colors.constants ;
 IN: darcs-ui
 : <patch-viewer> ( columns -- scroller ) <frp-table>
    [ first ] >>val-quot t >>multiple-selection?
@@ -49,8 +49,8 @@ IN: darcs-ui
             "FROM-TAG:" "FROM-PATCH:" "FROM-MATCH:"
             "TO-TAG:" "TO-MATCH:" "TO-PATCH:"
          } <combobox> -> [ but-last >lower ] fmap
-         <frp-field> { 100 10 } >>pref-dim ->% 1
-      ] <hbox> +baseline+ >>align ,
+         <empty-field*> { 100 10 } >>pref-dim ->% 1
+      ] <hbox> +baseline+ >>align COLOR: black <solid> >>interior ,
       [
          DIR[ rot drop patches ] 3fmap-| <patch-viewer> ->% .5 [ [ f ] when-empty ] fmap
          [ DIR[ drop files "\n" split create-tree ] fmap <dir-table> <scroller> ->% .5
@@ -58,8 +58,8 @@ IN: darcs-ui
          ] dip
       ] <hbox> ,% .5 [
          [ length 1 = ] <filter> DIR[ first cnts ] 2fmap-|
-         "Select a patch and file to see its historical contents" <model> swap <switch>
-      ] [ [ length 2 = ] <filter> [ t <model> swap <switch> ] dip DIR[ first2 swap diff ] 2fmap-| ] 2bi
+         "Select a patch and file to see its historical contents" <model> <switch>
+      ] [ [ length 2 = ] <filter> [ t <model> <switch> ] dip DIR[ first2 swap diff ] 2fmap-| ] 2bi
       2array <merge> <label-control> <scroller> ,% .5
    ] <vbox> "darcs" open-window ;
 
