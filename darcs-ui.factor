@@ -36,9 +36,9 @@ IN: darcs-ui
       2array <merge> >behavior
    "rec" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup
       DIR[ drop "Your Name:" "author" load-pref ] bind DIR[ record ] 3$>-&
-   "push" <darcs-button> -> [ "Push To:" "defaultrepo" load-pref ] bind* DIR[ repo-push ] $> ,
-   "pull" <darcs-button> -> [ "Pull From:" "defaultrepo" load-pref ] bind* DIR[ pull ] $>
-   "send" <darcs-button> -> [ "Send To:" "defaultrepo" load-pref ] bind* DIR[ send ] $> ,
+   "push" <darcs-button> -> DIR[ "Push To:" "defaultrepo" load-pref ] bind* DIR[ repo-push ] $> ,
+   "pull" <darcs-button> -> DIR[ "Pull From:" "defaultrepo" load-pref ] bind* DIR[ pull ] $>
+   "send" <darcs-button> -> DIR[ "Send To:" "defaultrepo" load-pref ] bind* DIR[ send ] $> ,
    "app" <darcs-button> -> DIR[ open-dir-panel [ first app ] when* ] $> 3array <merge> >behavior ;
 
 : darcs-window ( -- ) [
