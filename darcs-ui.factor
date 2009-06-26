@@ -1,12 +1,13 @@
 USING: accessors arrays cocoa.dialogs closures continuations
-darcs-ui.commands fries fry file-trees io io.files io.pathnames
+darcs-ui.commands fry file-trees io io.files io.pathnames
 io.directories io.encodings.utf8 kernel math models monads
 sequences splitting ui ui.gadgets.alerts ui.frp.gadgets
 ui.frp.layout ui.frp.signals ui.gadgets.comboboxes
 ui.gadgets.labels ui.gadgets.scrollers
-ui.baseline-alignment ui.images unicode.case
+ui.baseline-alignment unicode.case
 ui.pens.solid colors.constants ;
 IN: darcs-ui
+
 : <patch-viewer> ( columns -- scroller ) <frp-table>
    [ first ] >>val-quot t >>multiple-selection?
    { "Patch" "Author" "Date" } >>column-titles
@@ -23,23 +24,20 @@ IN: darcs-ui
       ] <vbox> { 229 200 } >>pref-dim "select changes" open-window
    ] [ drop [ ] "No changes!" alert f <model> ] recover ;
 
-: <darcs-button> ( str -- button ) i" vocab:darcs-ui/icons/_.tiff" <image-name> <frp-button> ;
-: <patch-button> ( str -- model ) <darcs-button> -> [ patches-quot ] bind* ;
-
 : load-pref ( name file -- model ) "_darcs/prefs/" prepend dup exists?
    [ utf8 [ readln ] with-file-reader <model> nip ]
    [ '[ dup _ utf8 set-file-contents ] swap ask-user swap fmap ] if ;
 
 : toolbar ( -- file-updates patch-updates )
-   "add" <darcs-button> -> [ drop open-dir-panel [ add-repo-file ] when* ] $>
-   "rem" <darcs-button> -> [ drop open-panel [ remove-repo-file ] when* ] $>
+   IMAGE-BUTTON: add -> [ drop open-dir-panel [ add-repo-file ] when* ] $>
+   IMAGE-BUTTON: rem -> [ drop open-panel [ remove-repo-file ] when* ] $>
       2array <merge> >behavior
-   "rec" <patch-button> dup [ drop "Patch Name:" ask-user ] bind dup
+   IMAGE-BUTTON: rec -> [ patches-quot ] bind* dup [ drop "Patch Name:" ask-user ] bind dup
       DIR[ drop "Your Name:" "author" load-pref ] bind DIR[ record ] 3$>-&
-   "push" <darcs-button> -> DIR[ "Push To:" "defaultrepo" load-pref ] bind* DIR[ repo-push ] $> ,
-   "pull" <darcs-button> -> DIR[ "Pull From:" "defaultrepo" load-pref ] bind* DIR[ pull ] $>
-   "send" <darcs-button> -> DIR[ "Send To:" "defaultrepo" load-pref ] bind* DIR[ send ] $> ,
-   "app" <darcs-button> -> DIR[ open-dir-panel [ first app ] when* ] $> 3array <merge> >behavior ;
+   IMAGE-BUTTON: push -> DIR[ "Push To:" "defaultrepo" load-pref ] bind* DIR[ repo-push ] $> ,
+   IMAGE-BUTTON: pull -> DIR[ "Pull From:" "defaultrepo" load-pref ] bind* DIR[ pull ] $>
+   IMAGE-BUTTON: send -> DIR[ "Send To:" "defaultrepo" load-pref ] bind* DIR[ send ] $> ,
+   IMAGE-BUTTON: app -> DIR[ open-dir-panel [ first app ] when* ] $> 3array <merge> >behavior ;
 
 : darcs-window ( -- ) [
       [
@@ -49,7 +47,7 @@ IN: darcs-ui
             "FROM-TAG:" "FROM-PATCH:" "FROM-MATCH:"
             "TO-TAG:" "TO-MATCH:" "TO-PATCH:"
          } <combobox> -> [ but-last >lower ] fmap
-         <empty-field*> { 100 10 } >>pref-dim ->% 1
+         <frp-field*> { 100 10 } >>pref-dim ->% 1
       ] <hbox> +baseline+ >>align COLOR: black <solid> >>interior ,
       [
          DIR[ rot drop patches ] 3fmap-| <patch-viewer> ->% .5 [ [ f ] when-empty ] fmap
