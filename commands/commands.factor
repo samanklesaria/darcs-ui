@@ -1,6 +1,6 @@
 USING: accessors arrays closures continuations darcs-ui io.encodings.utf8
 io.launcher io.files kernel regexp sequences fries xml xml.data
-xml.traversal ui.gadgets.alerts fry ;
+xml.traversal ui.gadgets.alerts fry run-desc ;
 IN: darcs-ui.commands
 
 : extract ( tag name -- string ) tag-named children>string ;
