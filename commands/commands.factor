@@ -1,4 +1,4 @@
-USING: accessors arrays closures continuations darcs-ui io.encodings.utf8
+USING: accessors arrays continuations io.encodings.utf8
 io.launcher io.files kernel regexp sequences fries xml xml.data
 xml.traversal ui.gadgets.alerts fry run-desc ;
 IN: darcs-ui.commands
@@ -37,7 +37,7 @@ IN: darcs-ui.commands
 
 : init-repo ( -- ) "darcs init" try-process ;
 : add-repo-file ( files -- ) { "darcs" "add" "-r" } prepend
-   [ try-process ] [ 2drop "File already exists in repository" alert* ] recover ;
+   [ try-process ] [ 2drop "File couldn't be added to repository" alert* ] recover ;
 : remove-repo-file ( files -- ) { "darcs" "remove" } prepend
    [ try-process ] [ 2drop "File doesn't exist in repository" alert* ] recover ;
 : repo-get ( filename -- ) i" darcs get _" [ try-process ] [ 2drop "Error connecting" alert* ] recover ;

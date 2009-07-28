@@ -22,18 +22,18 @@ IN: darcs-ui
       [ <change-list> ->% 1 "okay" <frp-button> [ close-window ] >>hook
          -> <updates> [ [ answer ] 2curry ] 2fmap
       ] <vbox> { 229 200 } >>pref-dim "select changes" open-window
-   ] [ drop [ ] "No changes!" alert f <model> ] recover ;
+   ] [ drop "No changes!" alert* f <model> ] recover ;
 
 : load-pref ( name file -- model ) "_darcs/prefs/" prepend dup exists?
    [ utf8 [ readln ] with-file-reader <model> nip ]
-   [ '[ dup _ utf8 set-file-contents ] swap ask-user swap fmap ] if ;
+   [ [ ask-user ] dip DIR[ utf8 set-file-contents ] curry $> ] if ;
 
 : toolbar ( -- file-updates patch-updates )
-   IMG-FRP-BTN: add -> [ drop open-dir-panel [ add-repo-file ] when* ] $>
-   IMG-FRP-BTN: rem -> [ drop open-panel [ remove-repo-file ] when* ] $>
-      2array <merge> >behavior
-   IMG-FRP-BTN: rec -> [ patches-quot ] bind* dup [ drop "Patch Name:" ask-user ] bind dup
-      DIR[ drop "Your Name:" "author" load-pref ] bind DIR[ record ] 3$>
+   IMG-FRP-BTN: add -> DIR[ drop open-dir-panel [ add-repo-file ] when* ] $>
+   IMG-FRP-BTN: rem -> DIR[ drop open-panel [ remove-repo-file ] when* ] $>
+      <2merge> >behavior
+   IMG-FRP-BTN: rec -> DIR[ patches-quot ] bind* dup [ drop "Patch Name:" ask-user ] bind dup
+      DIR[ "Your Name:" "author" load-pref ] bind* DIR[ record ] 3$>
    IMG-FRP-BTN: push -> DIR[ "Push To:" "defaultrepo" load-pref ] bind* DIR[ repo-push ] $> ,
    IMG-FRP-BTN: pull -> DIR[ "Pull From:" "defaultrepo" load-pref ] bind* DIR[ pull ] $>
    IMG-FRP-BTN: send -> DIR[ "Send To:" "defaultrepo" load-pref ] bind* DIR[ send ] $> ,
@@ -58,17 +58,17 @@ IN: darcs-ui
          [ length 1 = ] <filter> DIR[ first cnts ] 2fmap
          "Select a patch and file to see its historical contents" <model> <switch>
       ] [ [ length 2 = ] <filter> [ t <model> <switch> ] dip DIR[ first2 swap diff ] 2fmap ] 2bi
-      2array <merge> <label-control> <scroller> ,% .5
+      <2merge> <label-control> <scroller> ,% .5
    ] <vbox> "darcs" open-window ;
 
-DEFER: open-file
+DEFER: open-repo
 : create-repo ( -- ) "The selected folder is not a darcs repo.  Would you like to create one?" { "get remote" "init local" "find another repo" } ask-buttons
-   [ [ drop "Patch Name:" ask-user ] bind DIR[ dup repo-get file-name [ darcs-window ] with-directory ] $> activate-model ]
+   [ [ "Repo Name:" ask-user ] bind* DIR[ dup repo-get file-name [ darcs-window ] with-directory ] $> activate-model ]
    [ DIR[ drop [ init-repo darcs-window ] [ drop "Can't write to folder" alert* ] recover ] $> activate-model ]
-   [ [ drop open-file ] $> activate-model ] tri* ;
+   [ [ drop open-repo ] $> activate-model ] tri* ;
 
-: open-file ( -- ) [ open-dir-panel
-      [ first [ "_darcs" exists? [ darcs-window ] [ create-repo ] if ] with-directory ] unless-empty
-   ] with-ui ;
+: open-repo ( -- ) open-dir-panel [ first [ "_darcs" exists? [ darcs-window ] [ create-repo ] if ] with-directory ] unless-empty ;
 
-MAIN: open-file
+: impl ( -- ) [ open-repo ] with-ui ;
+
+MAIN: impl
