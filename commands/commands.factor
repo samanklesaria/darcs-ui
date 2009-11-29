@@ -1,21 +1,29 @@
 USING: accessors arrays continuations io.encodings.utf8
-io.launcher io.files kernel regexp sequences fries xml xml.data
-xml.traversal ui.gadgets.alerts fry run-desc ;
+io.launcher io.files kernel regexp sequences fries
+ui.gadgets.alerts fry run-desc regexp.private ;
 IN: darcs-ui.commands
 
-: extract ( tag name -- string ) tag-named children>string ;
+: remove-entities ( str -- str' )
+    { { R/ &lt/ "<" }
+    { R/ &quot/ "\"" }
+    { R/ &amp/ "&" }
+    { R/ &gt/ ">" }
+    { R/ &apos/ "'" } } swap
+    [ first2 re-replace ] reduce ;
+
 : prepare-patches ( changelog -- table-columns )
-   string>xml "patch" tags-named
-      [  [ "name" extract ]
-         [ [ "author" attr ] [ "local_date" attr ] bi ]
-         bi 3array
-      ] map ;
+    R" </patch>" [ subseq ] (re-split) but-last-slice [
+        [ R/ <name>[^<]+</ first-match 6 tail-slice but-last ]
+        [ R/ author='[^']+/ first-match 8 tail ]
+        [ R/ local_date='[^']+/ first-match 12 tail ] tri
+        [ remove-entities ] tri@ 3array
+    ] map ;
 : (patches) ( str -- table-columns )  i" darcs changes --xml-output _"
    [ run-desc prepare-patches ] [ 2drop "Error showing patches" alert* f ] recover ;
 : patches ( method search -- table-columns )
    [ drop "" (patches) { "working" "" "" } prefix ] [ i" --_ \"_\"" (patches) ] if-empty ;
 
-: whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ ^[^+-].*/m all-matching-subseqs ;
+: whatsnew ( -- matches ) "darcs whatsnew" run-desc R/ ^[^+-].*/m all-matching-slices ;
 
 : pull ( repo -- ) i" darcs pull --mark-conflicts -a _" [ try-process ]
    [ nip code>> 1 = [ "Conflicts marked- fix them and re-record" alert* ] [ "Can't connect" alert* ] if ] recover ; inline
